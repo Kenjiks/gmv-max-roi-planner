@@ -89,7 +89,9 @@ th { color: var(--text-secondary); font-weight: 600; font-size: 12px; vertical-a
 th:first-child, td:first-child { text-align: left; }
 tr.hl td { background: var(--accent-bg); font-weight: 600; }
 .tag { font-size: 10px; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-secondary); margin-left: 6px; font-weight: 500; }
-.bm-row, .calib-row { display: grid; grid-template-columns: 1fr 1fr 26px; gap: 6px; margin: 4px 0; }
+.bm-row { display: grid; grid-template-columns: 1fr 52px 1fr 26px; gap: 6px; margin: 4px 0; align-items: center; }
+.bm-row .cut { font-size: 12px; color: var(--text-muted); text-align: center; }
+.calib-row { display: grid; grid-template-columns: 1fr 1fr 26px; gap: 6px; margin: 4px 0; }
 .bm-row input, .calib-row input { width: 100%; }
 .note { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
 .note p { margin: 6px 0; }
@@ -123,8 +125,9 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
       <div class="card">
         <h2>1 · Current campaign</h2>
         <label class="f">Currency <input type="text" id="cur" value="RM"></label>
-        <label class="f"><div>GMV<span class="hint">for a period, e.g. last 7 days</span></div><input type="number" id="gmv" value="100000" min="0"></label>
-        <label class="f"><div>Ad spend (cost)<span class="hint">same period</span></div><input type="number" id="spend" value="27778" min="0"></label>
+        <label class="f"><div>GMV Max GMV<span class="hint">gross revenue from the GMV Max report, e.g. last 30 days</span></div><input type="number" id="gmv" value="100000" min="0"></label>
+        <label class="f"><div>GMV Max spend<span class="hint">actual cost, same period</span></div><input type="number" id="spend" value="27778" min="0"></label>
+        <label class="f"><div>Other shop GMV (optional)<span class="hint">organic / other channels. Doesn't scale with ROI</span></div><input type="number" id="org" value="0" min="0"></label>
         <label class="f"><div>Current target ROI<span class="hint">ROI = GMV ÷ ad spend</span></div><input type="number" id="troi" value="3.6" step="0.1" min="0.1"></label>
         <label class="f">Average order value <input type="number" id="aov" value="80" min="0.01"></label>
         <div class="note" id="actualRoi"></div>
@@ -162,18 +165,13 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
         </div>
 
         <div id="bmPanel">
-          <div class="note"><p>Based on internal GMV Max data: lowering the target ROI below its current level increases GMV by <b>up to</b>:</p></div>
-          <div class="note" id="bmSummary"></div>
+          <div class="note"><p>How much GMV Max GMV grows when the target ROI is lowered. Pre-filled with a TikTok benchmark campaign. <b>Edit it to match your campaign's estimates.</b> The tool applies the same <i>proportional</i> ROI cuts to your current target.</p></div>
+          <label class="f"><div>Base ROI<span class="hint">ROI the uplift is measured from</span></div><input type="number" id="bmBase" value="3.6" step="0.1"></label>
+          <div class="bm-row" style="font-size:11px;color:var(--text-muted)"><div>Lower to ROI</div><div>ROI cut</div><div>GMV uplift % (up to)</div><div></div></div>
+          <div id="bmRows"></div>
+          <div class="chips"><button id="bmAdd">+ Add point</button><button id="bmReset">Reset to benchmark</button></div>
           <label class="f"><div>Uplift realisation<span class="hint">benchmarks are "up to". 100% = full uplift</span></div><input type="number" id="real" value="100" step="5" min="0" max="150"></label>
           <input type="range" id="realR" min="0" max="150" step="5" value="100">
-          <details>
-            <summary>Edit benchmark points</summary>
-            <div class="note"><p>Uplift when lowering from a base ROI. The tool applies the same <i>proportional</i> ROI cuts to your current target.</p></div>
-            <label class="f">Base ROI <input type="number" id="bmBase" value="3.6" step="0.1"></label>
-            <div class="bm-row" style="font-size:11px;color:var(--text-muted)"><div>Lowered to ROI</div><div>GMV uplift %</div><div></div></div>
-            <div id="bmRows"></div>
-            <button id="bmAdd">+ Add point</button>
-          </details>
         </div>
 
         <div id="customPanel" style="display:none">
@@ -206,7 +204,7 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
           <span id="bandLegend"><i class="band"></i>Range covered by benchmark data</span>
         </div>
         <div class="chart-wrap" id="chartWrap">
-          <svg id="chart" viewBox="0 0 780 370" role="img" aria-label="GMV, ad spend and net profit across target ROI values"></svg>
+          <svg id="chart" viewBox="0 0 780 390" role="img" aria-label="GMV, ad spend and net profit across target ROI values"></svg>
           <div class="tip" id="tip"></div>
         </div>
       </div>
@@ -236,7 +234,7 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
 
 <script>
 const $ = id => document.getElementById(id);
-const NUM = ['gmv','spend','troi','aov','fee','cogs','aff','ret','ship','other','fixed','floor','real','elas','bmBase'];
+const NUM = ['gmv','spend','org','troi','aov','fee','cogs','aff','ret','ship','other','fixed','floor','real','elas','bmBase'];
 const DEFAULT_BM = { base: 3.6, pts: [[3.5, 3], [3.3, 9], [2.6, 33]] };
 
 // ---------- state <-> URL (shareable links) ----------
@@ -268,13 +266,14 @@ function deserialize(str) {
 // ---------- benchmark rows ----------
 function bmRow(r = '', u = '') {
   const d = document.createElement('div'); d.className = 'bm-row';
-  d.innerHTML = `<input type="number" step="0.1" value="${r}"><input type="number" step="0.5" value="${u}"><button title="remove">×</button>`;
+  d.innerHTML = `<input type="number" step="0.1" value="${r}"><div class="cut"></div><input type="number" step="0.5" value="${u}"><button title="remove">×</button>`;
   d.querySelector('button').onclick = () => { d.remove(); render(); };
   d.querySelectorAll('input').forEach(i => i.addEventListener('input', render));
   $('bmRows').appendChild(d);
 }
 function setBmRows(pts) { $('bmRows').innerHTML = ''; pts.forEach(([r, u]) => bmRow(r, u)); }
 $('bmAdd').onclick = () => bmRow();
+$('bmReset').onclick = () => { $('bmBase').value = DEFAULT_BM.base; setBmRows(DEFAULT_BM.pts); render(); };
 
 // ---------- scaling curves ----------
 // Returns f(ratio) = GMV multiplier when target ROI goes from r0 to r (ratio = r0/r).
@@ -315,18 +314,20 @@ function model(v) {
   const actualRoi = v.spend > 0 ? v.gmv / v.spend : r0;
   const eff = actualRoi / r0; // delivered vs target
   const S = makeScaler(v);
-  const gmvAt = r => v.gmv * S.f(r0 / r);
-  const spendAt = r => gmvAt(r) / (r * eff);
+  const adAt = r => v.gmv * S.f(r0 / r);           // GMV Max GMV (scales with ROI)
+  const gmvAt = r => adAt(r) + v.org;               // total shop GMV
+  const spendAt = r => adAt(r) / (r * eff);
   const profitAt = r => gmvAt(r) * m - spendAt(r) - v.fixed;
-  const worstAt = r => gmvAt(r) * m - gmvAt(r) / (0.9 * r) - v.fixed;
+  const worstAt = r => gmvAt(r) * m - adAt(r) / (0.9 * r) - v.fixed;
   const marginAt = r => gmvAt(r) > 0 ? profitAt(r) / gmvAt(r) : -Infinity;
   const be = m > 0 ? 1 / (m * eff) : Infinity;
-  const curProfit = v.gmv * m - v.spend - v.fixed;
+  const g0 = v.gmv + v.org;
+  const curProfit = g0 * m - v.spend - v.fixed;
 
   let pmax = null, growth = null;
   if (m > 0) {
     // profit-max ROI: grid then refine
-    const lo = be * 1.001, hi = Math.max(r0 * 4, be * 6);
+    const lo = Math.max(0.2, Math.min(be, r0) * 0.4), hi = Math.max(r0 * 4, be * 6);
     let best = lo, bp = -Infinity;
     for (let i = 0; i <= 2000; i++) { const r = lo * Math.pow(hi / lo, i / 2000), p = profitAt(r); if (p > bp) { bp = p; best = r; } }
     pmax = best < hi * 0.999 ? best : null; // null = keeps rising (no interior optimum in range)
@@ -343,7 +344,7 @@ function model(v) {
       growth = b;
     }
   }
-  return { m, r0, actualRoi, eff, S, gmvAt, spendAt, profitAt, worstAt, marginAt, be, pmax, growth, curProfit };
+  return { m, r0, g0, actualRoi, eff, S, adAt, gmvAt, spendAt, profitAt, worstAt, marginAt, be, pmax, growth, curProfit };
 }
 
 // ---------- formatting ----------
@@ -368,8 +369,10 @@ function render() {
   $('bmPanel').style.display = isBm ? '' : 'none';
   $('customPanel').style.display = isBm ? 'none' : '';
   const base = v.bmBase || 3.6;
-  $('bmSummary').innerHTML = bmPoints().filter(([r]) => r < base).sort((a, b) => b[0] - a[0])
-    .map(([r, u]) => `ROI ${base} → <b>${r}</b>: up to <b>+${u}%</b> GMV`).join('<br>');
+  document.querySelectorAll('#bmRows .bm-row').forEach(row => {
+    const r = parseFloat(row.querySelector('input').value);
+    row.querySelector('.cut').textContent = r > 0 && base > 0 ? (r < base ? '−' : '+') + Math.abs((1 - r / base) * 100).toFixed(1) + '%' : '';
+  });
 
   const M = model(v);
   $('actualRoi').innerHTML = v.spend > 0
@@ -378,12 +381,12 @@ function render() {
 
   // tiles
   const t = [];
-  t.push(`<div class="tile"><div class="k">Current net profit</div><div class="v ${cls(M.curProfit)}">${fmt(M.curProfit)}</div><div class="d">${v.gmv ? pct(M.curProfit / v.gmv) : '—'} of GMV at ROI ${roi(M.r0)}</div></div>`);
+  t.push(`<div class="tile"><div class="k">Current net profit</div><div class="v ${cls(M.curProfit)}">${fmt(M.curProfit)}</div><div class="d">${M.g0 ? pct(M.curProfit / M.g0) : '—'} of shop GMV at ROI ${roi(M.r0)}</div></div>`);
   t.push(`<div class="tile"><div class="k">Margin before ads</div><div class="v ${cls(M.m)}">${pct(M.m)}</div><div class="d">kept from each 1 of GMV</div></div>`);
   t.push(`<div class="tile"><div class="k">Break-even ROI</div><div class="v">${roi(M.be)}</div><div class="d">below this, ads lose money</div></div>`);
   if (M.growth) {
     const g = M.gmvAt(M.growth);
-    t.push(`<div class="tile hero"><div class="k">Growth ROI (≥ ${v.floor}% net margin)</div><div class="v">${roi(M.growth)}</div><div class="d">GMV ${fmt(g)} (${sgn(g / v.gmv - 1)}) · profit ${fmt(M.profitAt(M.growth))}</div></div>`);
+    t.push(`<div class="tile hero"><div class="k">Growth ROI (≥ ${v.floor}% net margin)</div><div class="v">${roi(M.growth)}</div><div class="d">GMV ${fmt(g)} (${sgn(g / M.g0 - 1)}) · profit ${fmt(M.profitAt(M.growth))}</div></div>`);
   } else {
     t.push(`<div class="tile hero"><div class="k">Growth ROI (≥ ${v.floor}% net margin)</div><div class="v neg">n/a</div><div class="d">${M.m <= 0 ? 'Margin before ads ≤ 0. Fix pricing or costs first.' : 'No ROI reaches this profit floor. Lower the floor or reduce costs.'}</div></div>`);
   }
@@ -397,13 +400,15 @@ function render() {
   if (M.m <= 0) {
     ins = `After fees and costs, this product loses money on every sale before ads. Review pricing, COGS or fees before scaling.`;
   } else if (M.growth) {
-    const g = M.gmvAt(M.growth), dG = g / v.gmv - 1;
+    const g = M.gmvAt(M.growth), dG = g / M.g0 - 1;
     if (M.growth < M.r0 * 0.995) {
       ins = `<b>Room to scale.</b> Lowering the target ROI from <b>${roi(M.r0)}</b> to <b>${roi(M.growth)}</b> could grow GMV by <b>${sgn(dG)}</b> (to ${fmt(g)}) while keeping at least a ${v.floor}% net margin. Profit moves from ${fmt(M.curProfit)} to ${fmt(M.profitAt(M.growth))}.`;
       if (M.pmax && M.pmax > M.growth) ins += ` For the most absolute profit, ROI ${roi(M.pmax)} is optimal. Between the two, the client trades profit for GMV growth and market share.`;
     } else {
       ins = `<b>At the profit floor.</b> At ROI ${roi(M.r0)} the campaign is at or below the ${v.floor}% net margin floor. To stay above it, target ROI needs to be at least <b>${roi(M.growth)}</b>, or costs need to come down.`;
     }
+    if (M.growth < M.be) ins += ` <i>At this ROI the GMV Max sales themselves are below break-even (${roi(M.be)}). The shop's other GMV is covering the loss.</i>`;
+    if (M.pmax && M.pmax > M.r0 * 1.15 && M.S.lo) ins += ` <i>The profit-max ROI is above the current target, outside the benchmark data, so treat it as directional.</i>`;
     if (M.growth < M.r0 * 0.995 && M.S.lo && M.growth < M.r0 * M.S.lo * 0.98) ins += ` <i>Note: ${roi(M.growth)} is beyond the benchmark data range (down to ${roi(M.r0 * M.S.lo)}), so treat it as a directional estimate.</i>`;
   } else {
     ins = `No target ROI reaches a ${v.floor}% net margin with these costs. Try a lower profit floor, or reduce costs.`;
@@ -413,7 +418,7 @@ function render() {
   // range
   const anchors = [M.r0, isFinite(M.be) ? M.be : M.r0];
   if (M.growth) anchors.push(M.growth);
-  if (M.pmax) anchors.push(Math.min(M.pmax, M.r0 * 2));
+  if (M.pmax) anchors.push(Math.min(M.pmax, M.r0 * 1.35));
   let rMin = Math.max(0.3, Math.min(...anchors) * 0.88);
   let rMax = Math.max(...anchors) * 1.15;
   if (rMax - rMin < 1) rMax = rMin + 1;
@@ -431,7 +436,7 @@ function niceTicks(lo, hi, n) {
 }
 
 function drawChart(M, v, rMin, rMax) {
-  const W = 780, H = 370, L = 70, R = 16, T = 40, B = 42;
+  const W = 780, H = 390, L = 70, R = 16, T = 60, B = 42;
   const N = 160, pts = [];
   for (let i = 0; i <= N; i++) { const r = rMin + (rMax - rMin) * i / N; pts.push({ r, g: M.gmvAt(r), s: M.spendAt(r), p: M.profitAt(r) }); }
   const ys = pts.flatMap(d => [d.g, d.s, d.p]);
@@ -460,12 +465,13 @@ function drawChart(M, v, rMin, rMax) {
   if (M.growth && M.growth >= rMin && M.growth <= rMax && Math.abs(M.growth - M.r0) > 0.01) marks.push({ r: M.growth, label: 'Growth', dash: '' });
   if (M.pmax && M.pmax >= rMin && M.pmax <= rMax) marks.push({ r: M.pmax, label: 'Profit-max', dash: '6 3' });
   marks.sort((a, b) => a.r - b.r);
-  let lastX = -999, row = 0;
+  const rowEnd = [-1e9, -1e9, -1e9];
   marks.forEach(mk => {
     const xx = x(mk.r);
-    row = xx - lastX < 80 ? (row + 1) % 2 : 0; lastX = xx;
+    let row = rowEnd.findIndex(e => xx - e >= 96); if (row < 0) row = 2;
+    rowEnd[row] = xx;
     s += `<line x1="${xx}" x2="${xx}" y1="${T}" y2="${H - B}" stroke="var(--text-secondary)" ${mk.dash ? `stroke-dasharray="${mk.dash}"` : ''}/>`;
-    s += `<text x="${xx}" y="${T - 8 - row * 13}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--text-primary)">${mk.label} ${roi(mk.r)}</text>`;
+    s += `<text x="${xx}" y="${T - 8 - row * 15}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--text-primary)">${mk.label} ${roi(mk.r)}</text>`;
   });
   [['g', '--series-1'], ['s', '--series-2'], ['p', '--series-3']].forEach(([k, c]) => {
     s += `<path d="${path(k)}" fill="none" stroke="var(${c})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -488,13 +494,13 @@ function drawChart(M, v, rMin, rMax) {
     dots.setAttribute('visibility', 'visible');
     [g, sp, p].forEach((val, i) => { const c = dots.children[i]; c.setAttribute('cx', x(r)); c.setAttribute('cy', y(val)); });
     tip.innerHTML = `<div style="color:var(--text-secondary)">Target ROI <b>${roi(r)}</b></div>
-      <div><span class="sw" style="background:var(--series-1)"></span>GMV <b>${fmt(g)}</b> <span style="color:var(--text-muted)">(${sgn(g / v.gmv - 1)})</span></div>
+      <div><span class="sw" style="background:var(--series-1)"></span>GMV <b>${fmt(g)}</b> <span style="color:var(--text-muted)">(${sgn(g / M.g0 - 1)})</span></div>
       <div><span class="sw" style="background:var(--series-2)"></span>Ad spend <b>${fmt(sp)}</b></div>
       <div><span class="sw" style="background:var(--series-3)"></span>Net profit <b class="${cls(p)}">${fmt(p)}</b> <span style="color:var(--text-muted)">(${pct(p / g)} of GMV)</span></div>`;
     tip.style.display = 'block';
     const px = cx - wrap.getBoundingClientRect().left;
     tip.style.left = (px > wrap.clientWidth - 240 ? px - 230 : px + 14) + 'px';
-    tip.style.top = '44px';
+    tip.style.top = '64px';
   };
   hit.onmousemove = ev => move(ev.clientX);
   hit.ontouchmove = ev => { move(ev.touches[0].clientX); ev.preventDefault(); };
