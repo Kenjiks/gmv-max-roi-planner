@@ -145,7 +145,7 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
         <label class="f"><div>GMV Max spend<span class="hint">actual cost, same period</span></div><input type="number" id="spend" value="27778" min="0"></label>
         <label class="f"><div>Other shop GMV (optional)<span class="hint">organic / other channels. Doesn't scale with ROI</span></div><input type="number" id="org" value="0" min="0"></label>
         <label class="f"><div>Current target ROI<span class="hint">ROI = GMV ÷ ad spend</span></div><input type="number" id="troi" value="3.6" step="0.1" min="0.1"></label>
-        <label class="f">Average order value <input type="number" id="aov" value="80" min="0.01"></label>
+        <label class="f"><div>Average order value (AOV)<span class="hint">= GMV ÷ number of orders, same period (exclude cancelled orders)</span></div><input type="number" id="aov" value="80" min="0.01"></label>
         <div class="note" id="actualRoi"></div>
       </div>
 
