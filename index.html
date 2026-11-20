@@ -160,10 +160,10 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
         <div class="note"><a href="https://seller-my.tiktok.com/university/course?learning_id=7692879306114818&role=1&course_type=1&from=search&content_id=6907739532281602&identity=1&lang=en" target="_blank" rel="noopener">Check the commission fees for your category ↗</a></div>
         <label class="f">Cost of goods (COGS) % <input type="number" id="cogs" value="25" step="0.5"></label>
         <label class="f">Affiliate / creator commission % <input type="number" id="aff" value="5" step="0.5"></label>
+        <label class="f"><div>Shipping / fulfilment %<span class="hint">net seller-paid shipping ÷ GMV (after customer-paid shipping &amp; platform subsidies)</span></div><input type="number" id="shipPct" value="3.75" step="0.05"></label>
         <label class="f"><div>Returns / refunds %<span class="hint">share of GMV refunded</span></div><input type="number" id="ret" value="3" step="0.5"></label>
         <div class="section-label">Per order</div>
-        <label class="f"><div>Shipping / fulfilment<span class="hint">seller-paid, per order</span></div><input type="number" id="ship" value="3" step="0.1"></label>
-        <label class="f">Packaging / other per order <input type="number" id="other" value="1" step="0.1"></label>
+        <label class="f"><div>Packaging / other per order<span class="hint">amount per order, e.g. boxes, inserts, free gifts</span></div><input type="number" id="other" value="1" step="0.1"></label>
         <div class="section-label">Fixed per period</div>
         <label class="f">Fixed costs (staff, content…) <input type="number" id="fixed" value="0" step="100"></label>
       </div>
@@ -174,40 +174,20 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
       </div>
 
       <div class="card">
-        <h2>4 · How delivery responds to target ROI</h2>
-        <div class="note"><p>A higher target ROI makes GMV Max bid only on near-certain conversions, so it <b>spends less and GMV falls</b>. A lower target makes spending easier, so GMV rises, but each extra RM 1 of ad spend returns less.</p></div>
-
-        <div class="section-label">Raising ROI above current</div>
-        <label class="f"><div>Spend drop factor<span class="hint">% of spend lost per 1% higher target ROI</span></div><input type="number" id="kup" value="2.3" step="0.1" min="1"></label>
-        <input type="range" id="kupR" min="1" max="4" step="0.1" value="2.3">
-        <div class="note" id="kupNote"></div>
-
-        <div class="section-label">Lowering ROI below current</div>
-        <div class="seg">
-          <label><input type="radio" name="mode" value="bm" checked>Benchmark uplift table</label>
-          <label><input type="radio" name="mode" value="k">Spend gain factor</label>
-        </div>
-        <div id="bmPanel">
-          <div class="note"><p>How much GMV Max GMV grows when the target ROI is lowered. Pre-filled with a TikTok benchmark campaign. <b>Edit it to match your campaign's estimates.</b> The tool applies the same <i>proportional</i> ROI cuts to your current target.</p></div>
-          <label class="f"><div>Base ROI<span class="hint">ROI the uplift is measured from</span></div><input type="number" id="bmBase" value="3.6" step="0.1"></label>
-          <div class="bm-row" style="font-size:11px;color:var(--text-muted)"><div>Lower to ROI</div><div>ROI cut</div><div>GMV uplift % (up to)</div><div></div></div>
-          <div id="bmRows"></div>
-          <div class="chips"><button id="bmAdd">+ Add point</button><button id="bmReset">Reset to benchmark</button></div>
-          <label class="f"><div>Uplift realisation<span class="hint">benchmarks are "up to". 100% = full uplift</span></div><input type="number" id="real" value="100" step="5" min="0" max="150"></label>
-          <input type="range" id="realR" min="0" max="150" step="5" value="100">
-        </div>
-        <div id="kPanel" style="display:none">
-          <label class="f"><div>Spend gain factor<span class="hint">% of spend gained per 1% lower target ROI</span></div><input type="number" id="kdown" value="1.9" step="0.1" min="1"></label>
-          <input type="range" id="kdownR" min="1" max="4" step="0.1" value="1.9">
-          <div class="note" id="kdownNote"></div>
-        </div>
+        <h2>4 · How GMV responds to target ROI</h2>
+        <div class="note"><p><b>Lower</b> target ROI → GMV Max spends more easily → more GMV, but each extra RM 1 of spend returns less.<br><b>Higher</b> target ROI → GMV Max only bids on near-certain sales → it struggles to spend → less GMV.</p><p><b>Keep the TikTok defaults unless you have your own test results.</b></p></div>
+        <label class="f"><div>Lower target ROI by 10% → GMV rises by (%)<span class="hint">default: TikTok benchmark campaign ("up to")</span></div><input type="number" id="dn" value="10.7" step="0.1" min="0"></label>
+        <div class="note" id="dnNote"></div>
+        <label class="f"><div>Raise target ROI by 10% → GMV falls by (%)<span class="hint">default: 168 weeks of data across 7 shops</span></div><input type="number" id="up" value="11.7" step="0.1" min="0" max="90"></label>
+        <div class="note" id="upNote"></div>
+        <div class="chips"><button id="resetDelivery">Reset to TikTok defaults</button></div>
 
         <div class="section-label">Budget</div>
         <label class="f"><div>Budget cap (optional)<span class="hint">max ad spend for the same period. 0 = no cap</span></div><input type="number" id="budget" value="0" min="0"></label>
         <div class="note" id="budgetNote"></div>
 
         <details>
-          <summary>Fit the factors from your shop's own data</summary>
+          <summary>Advanced: estimate the "raise" figure from your shop's own data</summary>
           <div class="note"><p>Paste two columns from Excel: <b>target ROI</b> and <b>ad spend</b>, one row per week (or day). Use at least 8 rows with a range of ROI targets.</p></div>
           <textarea id="fitData" rows="6" style="width:100%;font:inherit;font-size:12px;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface-0);color:var(--text-primary)" placeholder="3.2&#9;31845&#10;3.4&#9;28548&#10;..."></textarea>
           <div class="chips"><button id="fit">Fit from data</button></div>
@@ -238,7 +218,7 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
       <div class="card">
         <h2>Scenario table</h2>
         <div class="table-scroll"><table id="table"></table></div>
-        <div class="note"><p><b>Incremental ROI</b> = extra GMV ÷ extra ad spend compared with your current setting. Extra spend pays for itself only when incremental ROI is above your break-even ROI.</p></div>
+        <div class="note"><p><b>Faded rows</b> are outside the range covered by data (about 28% below to 20% above the current target ROI): they are extrapolated estimates.</p><p><b>Incremental ROI</b> = extra GMV ÷ extra ad spend compared with your current setting. Extra spend pays for itself only when incremental ROI is above your break-even ROI.</p></div>
       </div>
 
       <div class="card note">
@@ -247,9 +227,9 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
         <p><b>Break-even ROI</b> = 1 ÷ contribution margin. Below this, ad spend costs more than the sales it brings in.</p>
         <p><b>Growth ROI</b> = the lowest target ROI that still keeps your minimum net profit margin. It gives the most GMV inside your profit floor.</p>
         <p><b>Profit-max ROI</b> = the target ROI that makes the most net profit. Below it you trade some profit for more GMV and market share.</p>
-        <p><b>Delivery model</b>: GMV Max spend moves with the target ROI as <i>spend ∝ ROI<sup>−k</sup></i>, and GMV = ROI × spend. The factor <i>k</i> is the % change in spend per 1% change in target ROI. With k = 2.3, raising the target 10% cuts spend about 20% and GMV about 11%. Lowering it does the reverse, but each extra RM 1 of spend returns less than the current ROI. If a budget cap is set, spend can't go above it, however low the target.</p>
-        <p><b>Where the default factor comes from</b>: 168 weeks (Jun–Nov 2026) of target ROI and ad spend from 7 TikTok Shop accounts. In weeks where a shop's target was above its usual level, spend fell about <b>2.3%</b> for every 1% higher target. Across all weeks the average was 1.7 (95% range 1.4–2.0). Below a shop's usual target, spend rose less than expected, most likely because budgets capped it. The benchmark campaign's uplift table implies about 1.9–2.0. The two sources broadly agree.</p>
-        <p><b>Data range</b>: the shaded band and the full-colour rows in the table are inside the range the data covers (about 16% below to 20% above the current ROI, or down to the benchmark's lowest point). Faded rows outside it are extrapolated.</p>
+        <p><b>How GMV responds to target ROI</b>: GMV Max spend = GMV ÷ ROI. When the target is lowered 10% and GMV rises less than ~11%, spend still rises faster than GMV, so each extra RM 1 of spend earns less. When the target is raised, GMV Max finds fewer "safe" buyers, spend drops sharply and GMV falls. Past a certain point, so little is spent that profit falls too. That is the profit-max point.</p>
+        <p><b>Where the defaults come from</b>. <i>Lowering (+10.7% GMV for a 10% cut)</i>: a TikTok benchmark campaign (3.6→3.5 up to +3%, →3.3 up to +9%, →2.6 up to +33%). The tool keeps this curve's shape, where each further cut adds less, and scales it to the figure entered. <i>Raising (−11.7% GMV for a 10% rise)</i>: 168 weeks (Jun–Nov 2026) of target ROI and ad spend from 7 TikTok Shop accounts. In weeks above a shop's usual target, spend fell about 2.3% for every 1% higher target, so GMV fell about 1.3%. The two sources broadly agree.</p>
+        <p><b>Data range</b>: the shaded band and the full-colour table rows are inside what the data covers (about 28% below to 20% above the current target ROI). Faded rows outside it are extrapolated estimates.</p>
         <p><b>ROI guarantee</b>: if a day delivers less than 90% of target ROI, GMV Max credits back the shortfall. The worst case is about 0.9 × target ROI, and the "worst-case profit" column assumes that.</p>
         <p><b>Recommended rollout</b>: lower ROI in steps (e.g. 3.6 → 3.5 → 3.3), hold each for 3–5 days, then compare the real results with this plan before the next step.</p>
         <p>This is a planning estimate, not a guarantee of results. Actual performance depends on budget, creatives, stock, pricing and seasonality.</p>
@@ -262,74 +242,44 @@ footer { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
 
 <script>
 const $ = id => document.getElementById(id);
-const NUM = ['gmv','spend','org','troi','aov','fee','cogs','aff','ret','ship','other','fixed','floor','real','kup','kdown','budget','bmBase'];
-const DEFAULT_BM = { base: 3.6, pts: [[3.5, 3], [3.3, 9], [2.6, 33]] };
+const NUM = ['gmv','spend','org','troi','aov','fee','cogs','aff','ret','shipPct','other','fixed','floor','dn','up','budget'];
+// TikTok benchmark campaign: lowering target ROI from 3.6 to X gave up to +Y% GMV (fixed curve shape)
+const BM = { base: 3.6, pts: [[3.5, 3], [3.3, 9], [2.6, 33]] };
+const DEFAULT_DN = 10.7, DEFAULT_UP = 11.7;
 
 // ---------- state <-> URL (shareable links) ----------
-function getMode() { return document.querySelector('input[name=mode]:checked').value; }
-function bmPoints() {
-  return [...document.querySelectorAll('#bmRows .bm-row')].map(r => {
-    const [a, b] = r.querySelectorAll('input'); return [parseFloat(a.value), parseFloat(b.value)];
-  }).filter(([r, u]) => r > 0 && isFinite(u));
-}
 function serialize() {
   const p = new URLSearchParams();
   p.set('cur', $('cur').value);
   NUM.forEach(k => p.set(k, $(k).value));
-  p.set('mode', getMode());
-  p.set('bm', bmPoints().map(x => x.join(':')).join(','));
   return p.toString();
 }
 function deserialize(str) {
   const p = new URLSearchParams(str);
   if (p.has('cur')) $('cur').value = p.get('cur');
   NUM.forEach(k => { if (p.has(k)) $(k).value = p.get(k); });
-  if (p.get('mode')) document.querySelector(`input[name=mode][value=${p.get('mode') === 'bm' ? 'bm' : 'k'}]`).checked = true;
-  if (p.has('bm')) {
-    const pts = p.get('bm').split(',').map(s => s.split(':').map(Number)).filter(a => a.length === 2 && a.every(isFinite));
-    if (pts.length) setBmRows(pts);
-  }
 }
-
-// ---------- benchmark rows ----------
-function bmRow(r = '', u = '') {
-  const d = document.createElement('div'); d.className = 'bm-row';
-  d.innerHTML = `<input type="number" step="0.1" value="${r}"><div class="cut"></div><input type="number" step="0.5" value="${u}"><button title="remove">×</button>`;
-  d.querySelector('button').onclick = () => { d.remove(); render(); };
-  d.querySelectorAll('input').forEach(i => i.addEventListener('input', render));
-  $('bmRows').appendChild(d);
-}
-function setBmRows(pts) { $('bmRows').innerHTML = ''; pts.forEach(([r, u]) => bmRow(r, u)); }
-$('bmAdd').onclick = () => bmRow();
-$('bmReset').onclick = () => { $('bmBase').value = DEFAULT_BM.base; setBmRows(DEFAULT_BM.pts); render(); };
 
 // ---------- scaling curves ----------
 // f(q) = uncapped GMV Max GMV multiplier when target ROI moves from r0 to r (q = r0 / r).
-// Delivery model: spend ∝ ROI^(-k)  =>  GMV = ROI × spend ∝ ROI^(1-k).
-const DATA_HI = 1.2;   // 7-shop data covers ~0.84x–1.19x of each shop's usual ROI (5th–95th pct)
-const DATA_LO = 0.84;
+// Spend = GMV / ROI, so spend ∝ ROI^(-k) when GMV ∝ ROI^(1-k).
+const DATA_HI = 1.2;   // 7-shop data covers up to ~1.2x each shop's usual ROI
+// Benchmark curve in log-log space (x = ln(r0/r), y = ln(GMV multiplier)), piecewise linear.
+const BM_P = [[0, 0], ...BM.pts.map(([r, u]) => [Math.log(BM.base / r), Math.log(1 + u / 100)])];
+const BM_S = BM_P.slice(1).map((p, i) => (p[1] - BM_P[i][1]) / (p[0] - BM_P[i][0]));
+const lnBench = x => {
+  for (let i = 1; i < BM_P.length; i++) if (x <= BM_P[i][0]) return BM_P[i - 1][1] + BM_S[i - 1] * (x - BM_P[i - 1][0]);
+  const L = BM_P[BM_P.length - 1]; return L[1] + BM_S[BM_S.length - 1] * (x - L[0]);
+};
+const LN_BENCH_10 = lnBench(Math.log(1 / 0.9));      // benchmark GMV effect of a 10% ROI cut (≈ +10.7%)
+const DATA_LO = Math.exp(-BM_P[BM_P.length - 1][0]); // benchmark goes down to 2.6/3.6 ≈ 0.72x
 function makeScaler(v) {
-  const kup = Math.max(1, v.kup || 2.3);
-  const up = q => Math.pow(q, kup - 1);               // q < 1: raising ROI
-  if (getMode() !== 'bm') {
-    const kd = Math.max(1, v.kdown || 1.9);
-    return { f: q => q < 1 ? up(q) : Math.pow(q, kd - 1), lo: DATA_LO, hi: DATA_HI };
-  }
-  // Lowering ROI: benchmark uplift table, piecewise linear in log-log space.
-  const base = v.bmBase > 0 ? v.bmBase : 3.6;
-  const pts = bmPoints().filter(([r]) => r < base)
-    .map(([r, u]) => [Math.log(base / r), Math.log(1 + u / 100)])
-    .sort((a, b) => a[0] - b[0]);
-  const P = [[0, 0], ...pts];
-  const slopes = []; for (let i = 1; i < P.length; i++) slopes.push((P[i][1] - P[i - 1][1]) / Math.max(P[i][0] - P[i - 1][0], 1e-9));
-  const sN = slopes.length ? slopes[slopes.length - 1] : 1;
-  const rho = Math.max(0, v.real) / 100;
-  const lnMult = x => {
-    for (let i = 1; i < P.length; i++) if (x <= P[i][0]) return P[i - 1][1] + slopes[i - 1] * (x - P[i - 1][0]);
-    const L = P[P.length - 1]; return L[1] + sN * (x - L[0]); // extrapolate last segment
-  };
-  const maxX = P[P.length - 1][0];
-  return { f: q => q < 1 ? up(q) : 1 + rho * (Math.exp(lnMult(Math.log(q))) - 1), lo: Math.exp(-maxX), hi: DATA_HI };
+  // Lowering: benchmark curve shape, scaled so a 10% cut gives the user's figure.
+  const sc = Math.log(1 + Math.max(0, v.dn) / 100) / LN_BENCH_10;
+  // Raising: GMV × (1 - up%) at +10% ROI  =>  GMV ∝ ROI^(1-k).
+  const fall = Math.min(Math.max(v.up, 0), 90) / 100;
+  const kup = 1 + Math.log(1 - fall) / Math.log(1 / 1.1);
+  return { f: q => q < 1 ? Math.pow(q, kup - 1) : Math.exp(sc * lnBench(Math.log(q))), lo: DATA_LO, hi: DATA_HI, kup };
 }
 
 function read() {
@@ -340,8 +290,8 @@ function read() {
 
 function model(v) {
   const kept = 1 - v.ret / 100;
-  const perOrder = (v.ship + v.other) / Math.max(v.aov, 0.01);
-  const m = kept * (1 - (v.cogs + v.fee + v.aff) / 100) - perOrder;
+  const perOrder = v.other / Math.max(v.aov, 0.01);
+  const m = kept * (1 - (v.cogs + v.fee + v.aff) / 100) - v.shipPct / 100 - perOrder;
   const r0 = v.troi > 0 ? v.troi : 1;
   const actualRoi = v.spend > 0 ? v.gmv / v.spend : r0;
   const eff = actualRoi / r0; // delivered vs target
@@ -363,10 +313,10 @@ function model(v) {
     // profit-max ROI: grid then refine
     const lo = Math.max(0.2, Math.min(be, r0) * 0.4), hi = Math.max(r0 * 4, be * 6);
     // profit-max is only searched inside the range the data supports
-    const pHi = r0 * S.hi * 1.05, pLo = Math.min(lo, r0 * S.lo);
+    const pHi = r0 * 4, pLo = Math.min(lo, r0 * S.lo);
     let best = pLo, bp = -Infinity;
-    for (let i = 0; i <= 2000; i++) { const r = pLo * Math.pow(pHi / pLo, i / 2000), p = profitAt(r); if (p > bp) { bp = p; best = r; } }
-    pmax = best; pmaxEdge = best >= pHi * 0.995;
+    for (let i = 0; i <= 3000; i++) { const r = pLo * Math.pow(pHi / pLo, i / 3000), p = profitAt(r); if (p > bp) { bp = p; best = r; } }
+    pmax = best < pHi * 0.995 ? best : null; pmaxEdge = !!pmax && pmax > r0 * S.hi * 1.001; // edge = outside data range
     // growth ROI: lowest r with margin >= floor (search downward from a high ROI)
     const t = v.floor / 100;
     let prevOk = false, found = null;
@@ -406,19 +356,11 @@ const cls = n => n < 0 ? 'neg' : '';
 function render() {
   const v = read();
   cur = v.cur.length > 1 ? v.cur + ' ' : v.cur;
-  const isBm = getMode() === 'bm';
-  $('bmPanel').style.display = isBm ? '' : 'none';
-  $('kPanel').style.display = isBm ? 'none' : '';
-  const base = v.bmBase || 3.6;
-  document.querySelectorAll('#bmRows .bm-row').forEach(row => {
-    const r = parseFloat(row.querySelector('input').value);
-    row.querySelector('.cut').textContent = r > 0 && base > 0 ? (r < base ? '−' : '+') + Math.abs((1 - r / base) * 100).toFixed(1) + '%' : '';
-  });
 
   const M = model(v);
-  const effect = (mult, k) => `spend ${sgn(Math.pow(mult, -k) - 1)}, GMV ${sgn(Math.pow(mult, 1 - k) - 1)}`;
-  $('kupNote').innerHTML = `<p>+10% target ROI (${roi(M.r0)} → ${roi(M.r0 * 1.1)}): ${effect(1.1, Math.max(1, v.kup))}.<br>Default 2.3 comes from 168 weeks of data across 7 shops. See "How this works".</p>`;
-  $('kdownNote').innerHTML = `<p>−10% target ROI (${roi(M.r0)} → ${roi(M.r0 * 0.9)}): ${effect(0.9, Math.max(1, v.kdown))}.<br>The benchmark campaign works out to about 1.9–2.0.</p>`;
+  { const gD = 1 + Math.max(0, v.dn) / 100, gU = 1 - Math.min(Math.max(v.up, 0), 90) / 100;
+    $('dnNote').innerHTML = `<p>e.g. ${roi(M.r0)} → ${roi(M.r0 * 0.9)}: GMV ${sgn(gD - 1)}, ad spend ${sgn(gD / 0.9 - 1)}. Benchmark: ${roi(BM.base)}→3.5 +3%, →3.3 +9%, →2.6 +33%.</p>`;
+    $('upNote').innerHTML = `<p>e.g. ${roi(M.r0)} → ${roi(M.r0 * 1.1)}: GMV ${sgn(gU - 1)}, ad spend ${sgn(gU / 1.1 - 1)}.</p>`; }
   let bn = '';
   if (v.budget > 0 && v.budget < v.spend * 0.999) bn = `<p class="neg">The budget cap is below current spend (${fmt(v.spend)}). Check the period matches.</p>`;
   else if (v.budget > 0) {
@@ -443,7 +385,7 @@ function render() {
   }
   if (M.pmax) {
     t.push(M.pmaxEdge
-      ? `<div class="tile"><div class="k">Profit-max ROI</div><div class="v">≥ ${roi(M.pmax)}</div><div class="d">Profit is still rising at the edge of the data. Raise in small steps and measure.</div></div>`
+      ? `<div class="tile"><div class="k">Profit-max ROI (estimate)</div><div class="v">≈ ${roi(M.pmax)}</div><div class="d">Beyond the data range, so treat it as a direction, not a target. Raise ROI in small steps and measure.</div></div>`
       : `<div class="tile"><div class="k">Profit-max ROI</div><div class="v">${roi(M.pmax)}</div><div class="d">GMV ${fmt(M.gmvAt(M.pmax))} · profit ${fmt(M.profitAt(M.pmax))}</div></div>`);
   }
   $('tiles').innerHTML = t.join('');
@@ -456,7 +398,7 @@ function render() {
     const g = M.gmvAt(M.growth), dG = g / M.g0 - 1;
     if (M.growth < M.r0 * 0.995) {
       ins = `<b>Room to scale.</b> Lowering the target ROI from <b>${roi(M.r0)}</b> to <b>${roi(M.growth)}</b> could grow GMV by <b>${sgn(dG)}</b> (to ${fmt(g)}) while keeping at least a ${v.floor}% net margin. Profit moves from ${fmt(M.curProfit)} to ${fmt(M.profitAt(M.growth))}.`;
-      if (M.pmax && M.pmax > M.growth) ins += ` For the most absolute profit, aim for ROI ${M.pmaxEdge ? 'of at least ' : ''}${roi(M.pmax)}. Between the two, the client trades profit for GMV growth and market share.`;
+      if (M.pmax && M.pmax > M.growth) ins += ` For the most absolute profit, ${M.pmaxEdge ? 'the estimate is around' : 'aim for'} ROI ${roi(M.pmax)}${M.pmaxEdge ? ' (beyond the data range)' : ''}. Between the two, the client trades profit for GMV growth and market share.`;
     } else {
       ins = `<b>At the profit floor.</b> At ROI ${roi(M.r0)} the campaign is at or below the ${v.floor}% net margin floor. To stay above it, target ROI needs to be at least <b>${roi(M.growth)}</b>, or costs need to come down.`;
     }
@@ -472,7 +414,7 @@ function render() {
   // range
   const anchors = [M.r0, isFinite(M.be) ? M.be : M.r0];
   if (M.growth) anchors.push(M.growth);
-  if (M.pmax) anchors.push(Math.min(M.pmax, M.r0 * 1.35));
+  if (M.pmax) anchors.push(Math.min(M.pmax * 1.12, M.r0 * 2.2));
   let rMin = Math.max(0.3, Math.min(...anchors) * 0.88);
   let rMax = Math.max(...anchors) * 1.15;
   if (rMax - rMin < 1) rMax = rMin + 1;
@@ -567,12 +509,7 @@ function drawTable(M, v, rMin, rMax) {
   const special = {};
   const tag = (r, name) => { if (r && isFinite(r)) { const k = r.toFixed(2); special[k] = special[k] ? special[k] + ' · ' + name : name; set.add(+k); } };
   tag(M.r0, 'current');
-  // benchmark-equivalent ROIs
-  if (getMode() === 'bm') {
-    const base = v.bmBase || 3.6;
-    bmPoints().filter(([r]) => r < base).forEach(([r]) => tag(M.r0 * r / base, 'benchmark'));
-  }
-  tag(M.be, 'break-even'); tag(M.growth, 'growth'); tag(M.pmax, M.pmaxEdge ? 'profit-max (≥)' : 'profit-max');
+  tag(M.be, 'break-even'); tag(M.growth, 'growth'); tag(M.pmax, M.pmaxEdge ? 'profit-max (est.)' : 'profit-max');
   const g0 = M.gmvAt(M.r0), s0 = M.spendAt(M.r0);
   const rows = [...set].filter(r => r > 0).sort((a, b) => b - a);
   let h = `<tr><th>Target ROI</th><th>GMV</th><th>vs now</th><th>Ad spend</th><th>Net profit</th><th>Net margin</th><th>Incremental<br>ROI</th><th>Worst-case profit<br><span style="font-weight:400">(at 90% ROI)</span></th></tr>`;
@@ -606,23 +543,18 @@ $('fit').onclick = () => {
   const hiPts = pts.filter(p => p[0] >= med), kHi = hiPts.length >= 5 ? slope(hiPts) : null;
   if (kAll === null) return out('<p class="neg">The target ROI hardly changes in this data, so no factor can be fitted.</p>');
   const kUse = kHi !== null && kHi > 1 ? kHi : kAll;
-  let msg = `<p>${pts.length} rows, ROI ${Math.min(...pts.map(p => p[0]))}–${Math.max(...pts.map(p => p[0]))}.<br>All rows: spend factor <b>${kAll.toFixed(2)}</b>. Weeks at or above the usual ROI: <b>${kHi === null ? 'n/a' : kHi.toFixed(2)}</b>.</p>`;
+  let msg = `<p>${pts.length} rows, ROI ${Math.min(...pts.map(p => p[0]))}–${Math.max(...pts.map(p => p[0]))}.<br>Spend fell about <b>${kAll.toFixed(1)}%</b> per 1% higher target ROI (all rows), <b>${kHi === null ? 'n/a' : kHi.toFixed(1) + '%'}</b> in weeks at or above the usual ROI.</p>`;
   if (kUse <= 1) return out(msg + '<p class="neg">Spend didn\'t fall faster than ROI rose, so promos, budgets or stock are probably mixed in. Keep the default.</p>');
   const kc = Math.min(4, kUse);
-  $('kup').value = kc.toFixed(2); $('kupR').value = kc;
-  out(msg + `<p class="pos">Spend drop factor set to ${kc.toFixed(2)}. Treat this as indicative: budgets, promos and stock also move spend.</p>`);
+  const fallPct = (1 - Math.pow(1.1, 1 - kc)) * 100;
+  $('up').value = fallPct.toFixed(1);
+  out(msg + `<p class="pos">"Raise target ROI by 10% → GMV falls by" set to ${fallPct.toFixed(1)}%. Treat this as indicative: budgets, promos and stock also move spend.</p>`);
   render();
 };
 
 // ---------- wiring ----------
 ['cur', ...NUM].forEach(k => $(k).addEventListener('input', render));
-document.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener('change', render));
-$('realR').addEventListener('input', e => { $('real').value = e.target.value; render(); });
-$('real').addEventListener('input', e => { $('realR').value = e.target.value; });
-[['kup', 'kupR'], ['kdown', 'kdownR']].forEach(([n, r]) => {
-  $(r).addEventListener('input', e => { $(n).value = e.target.value; render(); });
-  $(n).addEventListener('input', e => { $(r).value = e.target.value; });
-});
+$('resetDelivery').onclick = () => { $('dn').value = DEFAULT_DN; $('up').value = DEFAULT_UP; render(); };
 document.querySelectorAll('button[data-fee]').forEach(b => b.onclick = () => { $('fee').value = b.dataset.fee; render(); });
 $('print').onclick = () => window.print();
 $('reset').onclick = () => { location.hash = ''; location.reload(); };
@@ -633,7 +565,6 @@ $('share').onclick = async () => {
   setTimeout(() => $('share').textContent = 'Copy shareable link', 2000);
 };
 
-setBmRows(DEFAULT_BM.pts);
 if (location.hash.length > 1) deserialize(location.hash.slice(1));
 render();
 </script>

@@ -12,26 +12,14 @@ It helps TikTok Shop sellers running **Product GMV Max**:
 - compare scenarios, including **incremental ROI** and **worst-case profit** under the 90% ROI guarantee
 - share a **link that keeps their inputs**, or print / save it as a PDF
 
-### Delivery model (how spend responds to target ROI)
-GMV Max spend follows `spend ∝ ROI^(−k)` and `GMV = ROI × spend`. A higher target ROI makes spending harder, so GMV falls. A lower target makes spending easier, so GMV rises, but each extra RM 1 of spend returns less.
-- **Raising ROI**: spend drop factor `k = 2.3` by default. This comes from 168 weeks (Jun–Nov 2026) of target ROI and spend across 7 shops, using weeks above each shop's usual ROI. The average across all weeks was 1.7 (95% range 1.4–2.0).
-- **Lowering ROI**: the benchmark uplift table (below) or a spend gain factor (the benchmark implies about 1.9–2.0).
-- **Budget cap** (optional): spend never goes above it, and Growth ROI never goes below the ROI where the budget runs out.
-- Users can paste their own target ROI / spend history to fit `k` for their shop.
-- Profit-max ROI is only searched inside the data range (about 0.84×–1.2× the current ROI).
+### How GMV responds to target ROI
+Users answer two plain questions (defaults shown):
+- **Lower target ROI by 10% → GMV rises by +10.7%.** This comes from a TikTok benchmark campaign (3.6→3.5 up to +3%, →3.3 up to +9%, →2.6 up to +33%). The tool keeps the benchmark curve's shape, where each further cut adds less, and scales it to the figure entered.
+- **Raise target ROI by 10% → GMV falls by 11.7%.** This comes from 168 weeks (Jun–Nov 2026) of target ROI and spend across 7 shops: in weeks above a shop's usual ROI, spend fell about 2.3% per 1% higher target.
 
-### Benchmark uplift (lowering ROI)
-By default the tool uses TikTok GMV Max benchmark data (from a base target ROI of 3.6):
-
-| Lower target ROI to | GMV uplift (up to) |
-|---|---|
-| 3.5 | +3% |
-| 3.3 | +9% |
-| 2.6 | +33% |
-
-Users can edit the uplift points to match their own campaign. The curve is interpolated in log-log space and applied in proportion to the seller's current ROI. Values beyond 2.6/3.6 of current ROI are extrapolated. A "realisation %" setting scales the "up to" uplift. Users can also switch to a custom elasticity, optionally fitted from their own history.
+Spend = GMV ÷ ROI, so profit peaks at some ROI and then falls as delivery dries up. Results outside the data range (about −28% to +20% of current ROI) are shown faded as estimates. There's an optional budget cap, and an advanced box to estimate the "raise" figure from a shop's own ROI/spend history.
 
 ### Profit maths
-- Margin before ads `m = (1 − refund%) × (1 − fees% − COGS% − affiliate%) − (shipping + packaging) / AOV`
+- Margin before ads `m = (1 − refund%) × (1 − fees% − COGS% − affiliate%) − shipping% − packaging per order / AOV`
 - Break-even ROI `= 1 / m`
 - Net profit `= GMV × m − ad spend − fixed costs`, with ad spend `= GMV / ROI`
